@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Toolkit;
@@ -65,6 +66,8 @@ public class JsonFormatter extends JFrame {
    private static final Color COLOR_ERROR = new Color(204, 0, 0);
 
    public static void main(String[] args) {
+      System.setProperty("awt.useSystemAAFontSettings", "on");
+      System.setProperty("swing.aatext", "true");
       try {
          UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
       } catch (Exception var2) {
@@ -99,6 +102,8 @@ public class JsonFormatter extends JFrame {
    private Image createAppIcon() {
       BufferedImage var1 = new BufferedImage(16, 16, 1);
       Graphics2D var2 = var1.createGraphics();
+      var2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      var2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
       var2.setColor(new Color(70, 130, 180));
       var2.fillRect(0, 0, 16, 16);
       var2.setColor(Color.WHITE);
