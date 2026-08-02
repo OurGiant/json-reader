@@ -3,6 +3,7 @@ package com.ourgiant.utilities.gui;
 import com.ourgiant.utilities.core.JsonProcessingException;
 import com.ourgiant.utilities.core.JsonProcessor;
 import com.ourgiant.utilities.model.JsonToken;
+import com.ourgiant.utilities.util.AppVersion;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -69,7 +70,7 @@ public class MainWindow extends JFrame {
     private static final Color COLOR_ERROR = new Color(204, 0, 0);
 
     public MainWindow() {
-        this.setTitle("JSON Tool v1.0");
+        this.setTitle("JSON Tool v" + AppVersion.resolve());
         this.setSize(800, 600);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo((Component) null);
