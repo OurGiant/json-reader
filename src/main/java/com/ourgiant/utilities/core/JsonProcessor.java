@@ -158,7 +158,6 @@ public final class JsonProcessor {
         List<JsonToken> tokens = new ArrayList<>();
         boolean inString = false;
         boolean escaped = false;
-        boolean isKey = false;
         int stringStart = -1;
         StringBuilder tokenBuf = new StringBuilder();
         int tokenStart = -1;
@@ -171,22 +170,22 @@ public final class JsonProcessor {
                 escaped = true;
             } else if (c == '"') {
                 if (inString) {
-                    tokens.add(new JsonToken(stringStart, i + 1 - stringStart, isKey ? JsonTokenType.KEY : JsonTokenType.STRING));
-                    inString = false;
-                    isKey = false;
-                } else {
-                    stringStart = i;
-                    inString = true;
+                    boolean isKey = false;
                     for (int j = i + 1; j < text.length(); j++) {
                         char lookahead = text.charAt(j);
                         if (lookahead == ':') {
                             isKey = true;
                             break;
                         }
-                        if (!Character.isWhitespace(lookahead) && lookahead != '"') {
+                        if (!Character.isWhitespace(lookahead)) {
                             break;
                         }
                     }
+                    tokens.add(new JsonToken(stringStart, i + 1 - stringStart, isKey ? JsonTokenType.KEY : JsonTokenType.STRING));
+                    inString = false;
+                } else {
+                    stringStart = i;
+                    inString = true;
                 }
             } else if (!inString) {
                 if (isPunctuation(c)) {
