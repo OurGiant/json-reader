@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class JsonProcessorTest {
 
     @Test
-    void formatsNestedObjectWithTwoSpaceIndent() {
+    void formatsNestedObjectWithTwoSpaceIndent() throws JsonProcessingException {
         String input = "{\"b\":2,\"a\":[1,2,3],\"nested\":{\"k\":true,\"n\":null}}";
         String expected = """
                 {
@@ -35,36 +35,36 @@ class JsonProcessorTest {
     }
 
     @Test
-    void formatUnwrapsAStringifiedJsonLiteral() {
+    void formatUnwrapsAStringifiedJsonLiteral() throws JsonProcessingException {
         String stringified = "\"{\\\"a\\\":1}\"";
         assertEquals("{\n  \"a\": 1\n}", JsonProcessor.format(stringified));
     }
 
     @Test
-    void formatIgnoresWhitespaceInsideStringValues() {
+    void formatIgnoresWhitespaceInsideStringValues() throws JsonProcessingException {
         String input = "{\"text\":\"a  b\\nc\"}";
         assertEquals("{\n  \"text\": \"a  b\\nc\"\n}", JsonProcessor.format(input));
     }
 
     @Test
-    void compactRemovesWhitespaceOutsideStrings() {
+    void compactRemovesWhitespaceOutsideStrings() throws JsonProcessingException {
         String input = "{\n  \"a\" : 1,\n  \"b\": [1, 2, 3]\n}";
         assertEquals("{\"a\":1,\"b\":[1,2,3]}", JsonProcessor.compact(input));
     }
 
     @Test
-    void compactPreservesWhitespaceInsideStrings() {
+    void compactPreservesWhitespaceInsideStrings() throws JsonProcessingException {
         String input = "{ \"text\" : \"has  spaces\" }";
         assertEquals("{\"text\":\"has  spaces\"}", JsonProcessor.compact(input));
     }
 
     @Test
-    void stringifyWrapsAndEscapes() {
+    void stringifyWrapsAndEscapes() throws JsonProcessingException {
         assertEquals("\"{\\\"a\\\":1}\"", JsonProcessor.stringify("{\"a\":1}"));
     }
 
     @Test
-    void escapeAndUnescapeRoundTripPlainText() {
+    void escapeAndUnescapeRoundTripPlainText() throws JsonProcessingException {
         String original = "line one\nline two\ttabbed \"quoted\"";
         String escaped = JsonProcessor.escape(original);
         assertEquals(original, JsonProcessor.unescape(escaped));
@@ -123,7 +123,50 @@ class JsonProcessorTest {
     }
 
     @Test
-    void tokenizeDistinguishesKeysFromStringValues() {
+    void formatRejectsInputOverTheSizeCap() {
+        String oversized = "{" + "a".repeat(JsonProcessor.MAX_INPUT_LENGTH + 1) + "}";
+        JsonProcessingException ex = assertThrows(JsonProcessingException.class, () -> JsonProcessor.format(oversized));
+        assertTrue(ex.getMessage().contains("too large"));
+    }
+
+    @Test
+    void validateRejectsInputOverTheSizeCap() {
+        String oversized = "{" + "a".repeat(JsonProcessor.MAX_INPUT_LENGTH + 1) + "}";
+        List<String> warnings = new ArrayList<>();
+        JsonProcessingException ex = assertThrows(JsonProcessingException.class,
+                () -> JsonProcessor.validate(oversized, warnings));
+        assertTrue(ex.getMessage().contains("too large"));
+    }
+
+    @Test
+    void validateRejectsNestingOverTheDepthCap() {
+        String tooDeep = "[".repeat(JsonProcessor.MAX_NESTING_DEPTH + 1) + "]".repeat(JsonProcessor.MAX_NESTING_DEPTH + 1);
+        List<String> warnings = new ArrayList<>();
+        JsonProcessingException ex = assertThrows(JsonProcessingException.class,
+                () -> JsonProcessor.validate(tooDeep, warnings));
+        assertTrue(ex.getMessage().contains("Nesting too deep"));
+    }
+
+    @Test
+    void formatRejectsNestingOverTheDepthCap() {
+        String tooDeep = "[".repeat(JsonProcessor.MAX_NESTING_DEPTH + 1) + "]".repeat(JsonProcessor.MAX_NESTING_DEPTH + 1);
+        JsonProcessingException ex = assertThrows(JsonProcessingException.class, () -> JsonProcessor.format(tooDeep));
+        assertTrue(ex.getMessage().contains("Nesting too deep"));
+    }
+
+    @Test
+    void formatDoesNotCrashOnUnbalancedClosingBrackets() throws JsonProcessingException {
+        // More closing brackets than opening ones is malformed, but format() is a
+        // best-effort pretty-printer used ahead of validation - it must degrade
+        // gracefully (no IllegalArgumentException from a negative indent) rather
+        // than crash on adversarial/malformed input.
+        String malformed = "{\"a\":1}}}}";
+        String result = JsonProcessor.format(malformed);
+        assertTrue(result.contains("\"a\": 1"));
+    }
+
+    @Test
+    void tokenizeDistinguishesKeysFromStringValues() throws JsonProcessingException {
         String text = "{\"key\":\"value\"}";
         List<JsonToken> tokens = JsonProcessor.tokenize(text);
         assertEquals(JsonTokenType.KEY, tokenTypeOf(tokens, text, "\"key\""));
@@ -132,28 +175,28 @@ class JsonProcessorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"true", "false"})
-    void tokenizeClassifiesBooleans(String literal) {
+    void tokenizeClassifiesBooleans(String literal) throws JsonProcessingException {
         String text = "{\"a\":" + literal + "}";
         List<JsonToken> tokens = JsonProcessor.tokenize(text);
         assertEquals(JsonTokenType.BOOLEAN, tokenTypeOf(tokens, text, literal));
     }
 
     @Test
-    void tokenizeClassifiesNull() {
+    void tokenizeClassifiesNull() throws JsonProcessingException {
         String text = "{\"a\":null}";
         List<JsonToken> tokens = JsonProcessor.tokenize(text);
         assertEquals(JsonTokenType.NULL, tokenTypeOf(tokens, text, "null"));
     }
 
     @Test
-    void tokenizeClassifiesNumbersIncludingExponents() {
+    void tokenizeClassifiesNumbersIncludingExponents() throws JsonProcessingException {
         String text = "{\"a\":-1.5e10}";
         List<JsonToken> tokens = JsonProcessor.tokenize(text);
         assertEquals(JsonTokenType.NUMBER, tokenTypeOf(tokens, text, "-1.5e10"));
     }
 
     @Test
-    void tokenizeMarksBracesAndPunctuationSeparately() {
+    void tokenizeMarksBracesAndPunctuationSeparately() throws JsonProcessingException {
         List<JsonToken> tokens = JsonProcessor.tokenize("{}");
         assertEquals(2, tokens.size());
         assertEquals(JsonTokenType.PUNCTUATION, tokens.get(0).type());
