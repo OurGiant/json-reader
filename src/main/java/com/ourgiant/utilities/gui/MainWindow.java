@@ -24,6 +24,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -47,6 +49,8 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
 public class MainWindow extends JFrame {
+    private static final Logger log = LoggerFactory.getLogger(MainWindow.class);
+
     private JTextPane textPane;
     private JButton formatButton;
     private JButton stringifyButton;
@@ -76,7 +80,8 @@ public class MainWindow extends JFrame {
 
         try {
             this.setIconImage(this.createAppIcon());
-        } catch (Exception ignored) {
+        } catch (Exception ex) {
+            log.warn("Failed to create app icon", ex);
         }
     }
 
@@ -230,6 +235,7 @@ public class MainWindow extends JFrame {
                 resetTimer.setRepeats(false);
                 resetTimer.start();
             } catch (IOException ex) {
+                log.error("Failed to save JSON to {}", file, ex);
                 JOptionPane.showMessageDialog(this, "Error saving file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -325,7 +331,8 @@ public class MainWindow extends JFrame {
                 for (JsonToken token : JsonProcessor.tokenize(text)) {
                     this.applyColor(token.start(), token.length(), colorFor(token.type()));
                 }
-            } catch (Exception ignored) {
+            } catch (Exception ex) {
+                log.debug("Syntax highlighting skipped for in-progress input", ex);
             }
         });
     }
