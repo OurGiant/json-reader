@@ -10,6 +10,7 @@ A Java Swing desktop application for viewing, formatting, and linting JSON. Prov
 - **Lint**: Validate JSON and report errors with position information
 - **Copy**: Copy the current output to the clipboard
 - **Clear**: Reset the editor in one click
+- **About & update check**: Help > About shows the app name, version, and copyright, and checks GitHub Releases for a newer version — both a manual check from the dialog and a silent, non-blocking startup check that's deduped so the same available version is only surfaced once
 
 ## Prerequisites
 
@@ -34,11 +35,13 @@ java -jar target/json-viewer-all.jar
 ```
 src/main/java/com/ourgiant/utilities/
 ├── Main.java              # Entry point
+├── AppPreferences.java    # java.util.prefs wrapper (currently just the update-check dedup version)
 ├── core/                  # Swing-free JSON logic (format/compact/stringify/validate/tokenize)
 ├── model/                 # Plain data types (JsonToken, JsonTokenType)
-├── gui/                   # MainWindow and all Swing wiring
-└── util/                  # AppVersion and other shared helpers with no business meaning of their own
+├── gui/                   # MainWindow, AboutDialog, and all Swing wiring
+└── util/                  # AppVersion, UpdateChecker, and other shared helpers with no business meaning of their own
 src/main/resources/
+├── app-icon.png            # Loaded by AboutDialog; distinct from src/packaging/linux/app-icon.png (jpackage input)
 ├── logback.xml             # Logging configuration
 └── version.properties      # Filtered at build time with the Maven project version
 src/packaging/

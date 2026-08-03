@@ -1,9 +1,11 @@
 package com.ourgiant.utilities.gui;
 
+import com.ourgiant.utilities.AppPreferences;
 import com.ourgiant.utilities.core.JsonProcessingException;
 import com.ourgiant.utilities.core.JsonProcessor;
 import com.ourgiant.utilities.model.JsonToken;
 import com.ourgiant.utilities.util.AppVersion;
+import com.ourgiant.utilities.util.UpdateChecker;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -25,6 +27,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.swing.AbstractAction;
@@ -42,6 +45,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -84,6 +88,50 @@ public class MainWindow extends JFrame {
         } catch (Exception ex) {
             log.warn("Failed to create app icon", ex);
         }
+
+        this.checkForUpdateAndNotifyIfNewer();
+    }
+
+    /**
+     * Silent startup check: never blocks launch (runs in its own SwingWorker) and never
+     * interrupts the user (the non-modal AboutDialog variant it opens is dismissible, not a
+     * blocking JOptionPane). Dedupes via AppPreferences so the same available version is
+     * announced once per version, not on every single launch.
+     */
+    private void checkForUpdateAndNotifyIfNewer() {
+        String currentVersion = AppVersion.resolve();
+        AppPreferences preferences = new AppPreferences();
+        SwingWorker<Optional<UpdateChecker.ReleaseInfo>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Optional<UpdateChecker.ReleaseInfo> doInBackground() {
+                return UpdateChecker.fetchLatestRelease();
+            }
+
+            @Override
+            protected void done() {
+                Optional<UpdateChecker.ReleaseInfo> release;
+                try {
+                    release = get();
+                } catch (Exception ex) {
+                    log.debug("Silent startup update check failed", ex);
+                    return;
+                }
+                if (release.isEmpty()) {
+                    return;
+                }
+                UpdateChecker.ReleaseInfo info = release.get();
+                if (!UpdateChecker.isNewerVersion(info.version(), currentVersion)) {
+                    return;
+                }
+                if (info.version().equals(preferences.getLastNotifiedUpdateVersion())) {
+                    return;
+                }
+                preferences.setLastNotifiedUpdateVersion(info.version());
+                AboutDialog dialog = new AboutDialog(MainWindow.this, info);
+                dialog.setVisible(true);
+            }
+        };
+        worker.execute();
     }
 
     private Image createAppIcon() {
@@ -151,6 +199,17 @@ public class MainWindow extends JFrame {
         fileMenu.addSeparator();
         fileMenu.add(exitItem);
         menuBar.add(fileMenu);
+
+        JMenu helpMenu = new JMenu("Help");
+        helpMenu.setMnemonic('H');
+        JMenuItem aboutItem = new JMenuItem("About");
+        aboutItem.addActionListener(e -> {
+            AboutDialog dialog = new AboutDialog(this);
+            dialog.setVisible(true);
+        });
+        helpMenu.add(aboutItem);
+        menuBar.add(helpMenu);
+
         this.setJMenuBar(menuBar);
     }
 
