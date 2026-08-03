@@ -12,6 +12,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Image;
@@ -135,15 +136,22 @@ public class MainWindow extends JFrame {
     }
 
     private Image createAppIcon() {
-        BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
+        int size = 16;
+        BufferedImage icon = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = icon.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g.setColor(new Color(70, 130, 180));
-        g.fillRect(0, 0, 16, 16);
+        g.fillRect(0, 0, size, size);
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 10));
-        g.drawString("J", 5, 12);
+        // Curly braces, not a "J" -- matches src/packaging's installer/About-dialog icon, so the
+        // taskbar/title-bar glyph a user sees every launch is recognizable as JSON specifically.
+        g.setFont(new Font("Monospaced", Font.BOLD, Math.round(size * 0.5f)));
+        FontMetrics fm = g.getFontMetrics();
+        String glyph = "{ }";
+        int x = (size - fm.stringWidth(glyph)) / 2;
+        int y = (size - fm.getHeight()) / 2 + fm.getAscent();
+        g.drawString(glyph, x, y);
         g.dispose();
         return icon;
     }
