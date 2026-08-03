@@ -87,8 +87,16 @@ hang; verify size-cap behavior directly against `JsonProcessor` instead
 (already covered by `JsonProcessorTest`), and reserve live-UI verification
 for input sizes a real user would actually paste.
 
-## No first-run state to worry about yet
+## First-run state: the update-check dedup preference
 
-The app doesn't persist preferences or write anywhere under `~/` besides
-`~/.json-viewer/logs/` (see `logback.xml`). No `-Duser.home` isolation notes
-needed yet — add one here if that changes.
+`AppPreferences` (added for the About/update-check feature, issue #20)
+persists the last-notified update version via `java.util.prefs`, backed by
+a platform store outside the repo (`~/.java/.userPrefs/...` on Linux) —
+not a file under `~/.json-viewer/`. `mvn test` doesn't exercise it (no
+`AppPreferencesTest`, mirroring doc-scrubber's minimal version of the same
+class), so no surefire system-property redirect is needed yet. If a test
+starts exercising it, redirect via a system property rather than letting
+`mvn test` read/write the real developer's prefs node — see
+`java-swing-project-setup` §7.
+
+Logging still only writes to `~/.json-viewer/logs/` (see `logback.xml`).
