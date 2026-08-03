@@ -41,6 +41,10 @@ src/main/java/com/ourgiant/utilities/
 src/main/resources/
 ├── logback.xml             # Logging configuration
 └── version.properties      # Filtered at build time with the Maven project version
+src/packaging/
+├── app-icon.ico            # Windows installer/app icon
+├── app-icon.icns           # macOS installer/app icon
+└── linux/                  # Linux .desktop, PNG icon, and postinst/prerm scripts for jpackage's --resource-dir
 ```
 
 `gui/` depends one-way on `core/` and `model/`; neither of those imports `javax.swing.*`, so the JSON logic is unit-testable without a display.
