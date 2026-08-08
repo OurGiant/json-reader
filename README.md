@@ -1,5 +1,11 @@
 # JSON Viewer
 
+[![Build](https://github.com/OurGiant/json-reader/actions/workflows/build.yml/badge.svg)](https://github.com/OurGiant/json-reader/actions/workflows/build.yml)
+[![Latest Release](https://img.shields.io/github/v/release/OurGiant/json-reader)](https://github.com/OurGiant/json-reader/releases/latest)
+[![License: MIT](https://img.shields.io/github/license/OurGiant/json-reader)](LICENSE)
+[![Java 24](https://img.shields.io/badge/Java-24-orange?logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Platforms](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-blue)](#build)
+
 A Java Swing desktop application for viewing, formatting, and linting JSON. Provides syntax highlighting and one-click pretty-printing or minification.
 
 ## Features
@@ -11,6 +17,7 @@ A Java Swing desktop application for viewing, formatting, and linting JSON. Prov
 - **Copy**: Copy the current output to the clipboard
 - **Clear**: Reset the editor in one click
 - **About & update check**: Help > About shows the app name, version, and copyright, and checks GitHub Releases for a newer version — both a manual check from the dialog and a silent, non-blocking startup check that's deduped so the same available version is only surfaced once
+- **Theme selection**: View > Theme switches between Swing's default look-and-feels and FlatLaf/IntelliJ themes; the choice persists across restarts via `AppPreferences`
 
 ## Prerequisites
 
@@ -35,7 +42,8 @@ java -jar target/json-viewer-all.jar
 ```
 src/main/java/com/ourgiant/utilities/
 ├── Main.java              # Entry point
-├── AppPreferences.java    # java.util.prefs wrapper (currently just the update-check dedup version)
+├── AppPreferences.java    # java.util.prefs wrapper (update-check dedup version, theme choice)
+├── ThemeManager.java      # FlatLaf/Swing look-and-feel selection, applied at startup and from View > Theme
 ├── core/                  # Swing-free JSON logic (format/compact/stringify/validate/tokenize)
 ├── model/                 # Plain data types (JsonToken, JsonTokenType)
 ├── gui/                   # MainWindow, AboutDialog, and all Swing wiring

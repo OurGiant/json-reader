@@ -7,7 +7,7 @@
 
     <groupId>com.ourgiant.utilities</groupId>
     <artifactId>json-viewer</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3</version>
     <packaging>jar</packaging>
 
     <name>JSON Viewer</name>
