@@ -27,6 +27,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -53,6 +54,7 @@ import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -200,12 +202,16 @@ public class MainWindow extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic('F');
+        JMenuItem openItem = new JMenuItem("Open File...");
+        openItem.setAccelerator(KeyStroke.getKeyStroke('O', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        openItem.addActionListener(e -> this.openFile());
         JMenuItem saveItem = new JMenuItem("Save to File...");
         saveItem.setAccelerator(KeyStroke.getKeyStroke('S', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         saveItem.addActionListener(e -> this.saveToFile());
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.setAccelerator(KeyStroke.getKeyStroke('Q', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         exitItem.addActionListener(e -> System.exit(0));
+        fileMenu.add(openItem);
         fileMenu.add(saveItem);
         fileMenu.addSeparator();
         fileMenu.add(exitItem);
@@ -312,6 +318,41 @@ public class MainWindow extends JFrame {
                 MainWindow.this.statusLabel.setText("Ready");
             }
         });
+    }
+
+    private void openFile() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Open JSON File");
+        chooser.setFileFilter(new FileNameExtensionFilter("JSON files (*.json)", "json"));
+        int choice = chooser.showOpenDialog(this);
+        if (choice != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        File file = chooser.getSelectedFile();
+        if (file.length() > JsonProcessor.MAX_INPUT_LENGTH) {
+            JOptionPane.showMessageDialog(this,
+                "File too large: " + file.length() + " bytes exceeds the "
+                    + JsonProcessor.MAX_INPUT_LENGTH + "-byte limit",
+                "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        try {
+            String content = Files.readString(file.toPath());
+            this.textPane.setText(content);
+            this.applySyntaxHighlighting(content);
+            this.textPane.setCaretPosition(0);
+            this.statusLabel.setText("Opened: " + file.getName());
+            this.statusLabel.setForeground(new Color(0, 128, 0));
+            Timer resetTimer = new Timer(3000, e -> {
+                this.statusLabel.setText("Ready");
+                this.statusLabel.setForeground(Color.BLACK);
+            });
+            resetTimer.setRepeats(false);
+            resetTimer.start();
+        } catch (IOException ex) {
+            log.error("Failed to open JSON file {}", file, ex);
+            JOptionPane.showMessageDialog(this, "Error opening file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void saveToFile() {

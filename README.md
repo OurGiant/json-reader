@@ -10,6 +10,7 @@ A Java Swing desktop application for viewing, formatting, and linting JSON. Prov
 
 ## Features
 
+- **Open**: File > Open... loads a `.json` file from disk straight into the editor
 - **Syntax highlighting**: Keys, strings, numbers, booleans, and nulls each rendered in a distinct colour
 - **Format**: Pretty-print compact or malformed JSON with proper indentation
 - **Stringify**: Collapse formatted JSON back to a single-line compact string
@@ -84,6 +85,10 @@ the parser). Two limits guard against pathological input:
   `format` and `validate` both reject input nested deeper than this, so a
   pathologically nested document (e.g. thousands of `[` in a row) can't build
   an unbounded bracket stack or indent string.
+- **File > Open... checks size before reading**: `MainWindow.openFile()`
+  compares the selected file's size against `JsonProcessor.MAX_INPUT_LENGTH`
+  before calling `Files.readString`, so an oversized file is rejected with an
+  error dialog instead of being fully read into memory first.
 - **Malformed input degrades gracefully**: `format` is a best-effort
   pretty-printer that can run *before* `validate` has confirmed the input is
   well-formed, so it never assumes balanced brackets — e.g. more closing
