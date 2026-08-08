@@ -2,10 +2,15 @@ package com.ourgiant.utilities;
 
 import java.util.prefs.Preferences;
 
-/** Local app state. Currently just tracks which update version the silent startup check has already notified about. */
+/** Local app state: update-check dedup and the user's chosen theme. */
 public class AppPreferences {
 
     private static final String KEY_LAST_NOTIFIED_UPDATE_VERSION = "lastNotifiedUpdateVersion";
+    private static final String KEY_THEME = "theme";
+
+    // Matches the look and feel this app used before ThemeManager existed, so upgrading
+    // doesn't change the default appearance for existing users.
+    private static final String DEFAULT_THEME = "Flat Light";
 
     private final Preferences prefs;
 
@@ -24,5 +29,13 @@ public class AppPreferences {
 
     public void setLastNotifiedUpdateVersion(String version) {
         prefs.put(KEY_LAST_NOTIFIED_UPDATE_VERSION, version);
+    }
+
+    public String getTheme() {
+        return prefs.get(KEY_THEME, DEFAULT_THEME);
+    }
+
+    public void setTheme(String themeName) {
+        prefs.put(KEY_THEME, themeName);
     }
 }

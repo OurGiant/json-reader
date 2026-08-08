@@ -1,6 +1,5 @@
 package com.ourgiant.utilities;
 
-import com.formdev.flatlaf.FlatLightLaf;
 import com.ourgiant.utilities.gui.MainWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,11 +12,13 @@ public class Main {
     public static void main(String[] args) {
         System.setProperty("awt.useSystemAAFontSettings", "on");
         System.setProperty("swing.aatext", "true");
-        if (!FlatLightLaf.setup()) {
-            log.warn("FlatLaf setup failed; falling back to default look and feel");
-        }
 
         SwingUtilities.invokeLater(() -> {
+            AppPreferences preferences = new AppPreferences();
+            if (!ThemeManager.applyTheme(preferences.getTheme())) {
+                log.warn("Failed to apply saved theme; falling back to default look and feel");
+            }
+
             MainWindow window = new MainWindow();
             window.setVisible(true);
         });

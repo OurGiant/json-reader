@@ -1,6 +1,7 @@
 package com.ourgiant.utilities.gui;
 
 import com.ourgiant.utilities.AppPreferences;
+import com.ourgiant.utilities.ThemeManager;
 import com.ourgiant.utilities.core.JsonProcessingException;
 import com.ourgiant.utilities.core.JsonProcessor;
 import com.ourgiant.utilities.model.JsonToken;
@@ -33,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -42,6 +44,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
@@ -208,6 +211,8 @@ public class MainWindow extends JFrame {
         fileMenu.add(exitItem);
         menuBar.add(fileMenu);
 
+        menuBar.add(this.buildViewMenu());
+
         JMenu helpMenu = new JMenu("Help");
         helpMenu.setMnemonic('H');
         JMenuItem aboutItem = new JMenuItem("About");
@@ -219,6 +224,30 @@ public class MainWindow extends JFrame {
         menuBar.add(helpMenu);
 
         this.setJMenuBar(menuBar);
+    }
+
+    private JMenu buildViewMenu() {
+        JMenu viewMenu = new JMenu("View");
+        viewMenu.setMnemonic('V');
+        JMenu themeMenu = new JMenu("Theme");
+
+        AppPreferences preferences = new AppPreferences();
+        String currentTheme = preferences.getTheme();
+        ButtonGroup themeGroup = new ButtonGroup();
+        for (String themeName : ThemeManager.getAvailableThemeNames()) {
+            JRadioButtonMenuItem item = new JRadioButtonMenuItem(themeName, themeName.equals(currentTheme));
+            item.addActionListener(e -> {
+                if (ThemeManager.applyTheme(themeName)) {
+                    preferences.setTheme(themeName);
+                } else {
+                    log.warn("Failed to apply theme {}", themeName);
+                }
+            });
+            themeGroup.add(item);
+            themeMenu.add(item);
+        }
+        viewMenu.add(themeMenu);
+        return viewMenu;
     }
 
     private void setupListeners() {
