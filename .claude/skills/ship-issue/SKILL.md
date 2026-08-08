@@ -8,9 +8,10 @@ description: The standard workflow for shipping a bug fix or feature to JSON Vie
 Follow `java-swing-ship-issue` (the generic workflow shared across the Java
 Swing project family) with these JSON Viewer specifics:
 
-- **Project path**: `/projects/json-reader` inside the build container;
-  build container name and bind-mount gotchas are in this repo's own
-  `.claude/skills/verify/SKILL.md`.
+- **Project path**: `/projects/OHI/json-reader` inside the build container
+  (not `/projects/json-reader` — the mount has an `OHI/` subdirectory,
+  confirmed 2026-08-08, issue #29); build container name and bind-mount
+  gotchas are in this repo's own `.claude/skills/verify/SKILL.md`.
 - **Verify**: use this repo's own `.claude/skills/verify/SKILL.md` for
   build/launch mechanics and this project's confirmed environment gotchas.
 - **Untrusted-input surfaces**: this app formats/lints/tokenizes arbitrary

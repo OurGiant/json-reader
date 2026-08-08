@@ -15,15 +15,20 @@ type for *this* project.
 Maven only exists in the Docker container, not on the host:
 
 ```bash
-docker exec festive_bardeen bash -c "cd /projects/json-reader && mvn -q package -DskipTests"
+docker exec festive_bardeen bash -c "cd /projects/OHI/json-reader && mvn -q package -DskipTests"
 ```
 
 If `festive_bardeen` doesn't respond, find the current container:
 `docker ps -a --format '{{.Names}} {{.Status}} {{.Image}}'` and
 `docker start <name>` if stopped — the name can drift across sessions.
 
-`/projects` is bind-mounted from the host's `~/projects`, so the jar lands
-at `target/json-viewer-all.jar`, visible on the host. The container is
+`/projects` is bind-mounted from the host's `~/projects`, which has an
+`OHI/` subdirectory this repo lives under — confirmed 2026-08-08 (issue
+#29) after `/projects/json-reader` (this file's path until then) turned
+up "No such file or directory"; don't assume the mount lands directly on
+the repo without checking `docker exec festive_bardeen ls /projects/` if
+this ever 404s again. The jar lands at `target/json-viewer-all.jar`,
+visible on the host. The container is
 headless (no `DISPLAY`) — run the jar on the **host**, not inside the
 container, or it dies at `JFrame` construction with `HeadlessException`.
 
@@ -45,8 +50,8 @@ before trusting a build result whenever you've just added a new file or
 edited `pom.xml` specifically — force a sync with:
 
 ```bash
-docker cp src/main/resources festive_bardeen:/projects/json-reader/src/main/
-docker cp pom.xml festive_bardeen:/projects/json-reader/pom.xml
+docker cp src/main/resources festive_bardeen:/projects/OHI/json-reader/src/main/
+docker cp pom.xml festive_bardeen:/projects/OHI/json-reader/pom.xml
 ```
 
 ## Stale compiled classes can mask a real compile error
